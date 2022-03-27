@@ -8,12 +8,16 @@ fn main() {
         process::exit(1);
     });
 
-    let points = get_points(format!("images/{}", config.filename).as_str());
+    let points = get_points(
+        format!("images/{}", config.filename).as_str(),
+        config.color_channel,
+    );
     plot(points);
 }
 
 pub struct Config {
     pub filename: String,
+    pub color_channel: String,
 }
 
 impl Config {
@@ -25,16 +29,28 @@ impl Config {
             None => return Err("Didn't get a file name"),
         };
 
-        Ok(Config { filename })
+        let color_channel = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a color channel"),
+        };
+
+        Ok(Config {
+            filename,
+            color_channel,
+        })
     }
 }
 
-fn get_points(image: &str) -> Vec<(f32, f32)> {
+fn get_points(image: &str, color_channel: String) -> Vec<(f32, f32)> {
     let image = raster::open(image).unwrap();
     let mut points = vec![];
     for i in 0..440 {
         let pixel = image.get_pixel(7, i).unwrap();
-        points.push((i as f32 * 0.265, pixel.r as f32));
+        if color_channel.eq("r") {
+            points.push((i as f32 * 0.265, pixel.r as f32));
+        } else if color_channel.eq("g") {
+            points.push((i as f32 * 0.265, pixel.g as f32));
+        }
     }
 
     let mut min_y = 255.0;
