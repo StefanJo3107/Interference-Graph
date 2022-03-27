@@ -1,8 +1,32 @@
+use std::{env, process};
+
 use plotters::prelude::*;
 
 fn main() {
-    let points = get_points("images/intensity.png");
+    let config = Config::new(env::args()).unwrap_or_else(|err| {
+        eprintln!("Problem parsing arguments: {}", err);
+        process::exit(1);
+    });
+
+    let points = get_points(format!("images/{}", config.filename).as_str());
     plot(points);
+}
+
+pub struct Config {
+    pub filename: String,
+}
+
+impl Config {
+    pub fn new(mut args: env::Args) -> Result<Config, &'static str> {
+        args.next();
+
+        let filename = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a file name"),
+        };
+
+        Ok(Config { filename })
+    }
 }
 
 fn get_points(image: &str) -> Vec<(f32, f32)> {
