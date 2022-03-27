@@ -12,12 +12,13 @@ fn main() {
         format!("images/{}", config.filename).as_str(),
         config.color_channel,
     );
-    plot(points);
+    plot(points, config.output);
 }
 
 pub struct Config {
     pub filename: String,
     pub color_channel: String,
+    pub output: String,
 }
 
 impl Config {
@@ -34,9 +35,15 @@ impl Config {
             None => return Err("Didn't get a color channel"),
         };
 
+        let output = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a file name"),
+        };
+
         Ok(Config {
             filename,
             color_channel,
+            output,
         })
     }
 }
@@ -73,8 +80,9 @@ fn get_points(image: &str, color_channel: String) -> Vec<(f32, f32)> {
     points
 }
 
-fn plot(points: Vec<(f32, f32)>) {
-    let root = BitMapBackend::new("images/plot.png", (1000, 300)).into_drawing_area();
+fn plot(points: Vec<(f32, f32)>, output: String) {
+    let output_path = format!("images/{}", output.as_str());
+    let root = BitMapBackend::new(output_path.as_str(), (1000, 300)).into_drawing_area();
     root.fill(&WHITE).unwrap();
     let mut chart = ChartBuilder::on(&root)
         .x_label_area_size(30)
